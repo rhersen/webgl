@@ -5,8 +5,8 @@ function webgl() {
     var PI2 = 2 * Math.PI
     var canvas = document.getElementById('webgl')
     var gl = canvas.getContext('webgl')
-    var vertices = new Float32Array(6)
-    var vertexBuf = gl.createBuffer()
+    var n = 8;
+    var vertices = new Float32Array(n * 2)
 
     bind()
 
@@ -30,7 +30,7 @@ function webgl() {
         ].join(';')))
 
         gl.attachShader(r, createShader(gl.FRAGMENT_SHADER, [
-            'void main() { gl_FragColor = vec4(0, 0, 1, 1)',
+            'void main() { gl_FragColor = vec4(0, 0, 0, 1)',
             '}'
         ].join(';')))
 
@@ -51,19 +51,18 @@ function webgl() {
     function bind() {
         var loc = gl.getAttribLocation(setupProgram(), 'pos')
         gl.enableVertexAttribArray(loc)
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuf)
+        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
     }
 
     function draw() {
         updateVertices(new Date().getTime())
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuf)
         gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.DYNAMIC_DRAW)
         gl.drawArrays(gl.LINE_LOOP, 0, vertices.length / 2)
         requestAnimationFrame(draw)
 
         function updateVertices(millis) {
-            var d = PI2 / 3
+            var d = PI2 / n
             var angle = millis % 20000 * PI2 / 20000
             var i = 0
             while (i < vertices.length) {
