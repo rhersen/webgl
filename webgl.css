@@ -20,6 +20,7 @@
 body {
     background-color: darkslateblue;
     color: white;
+    font-family: sans-serif;
 }
 
 canvas {
