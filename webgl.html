@@ -4,14 +4,19 @@
     <link rel="stylesheet" href="webgl.css">
 </head>
 <body onload="webgl()">
-<span class="flex-column">
-    <span>y=1</span>
-    <span class="flex-row">
-        <span>x=-1</span>
-        <canvas id="webgl" width="1000" height="1000"></canvas>
-        <span>x=1</span>
+<span class="flex-row">
+    <span class="flex-column">
+        <span>y=1</span>
+        <span class="flex-row">
+            <span>x=-1</span>
+            <canvas id="webgl" width="1000" height="1000"></canvas>
+            <span>x=1</span>
+        </span>
+        <span>y=-1</span>
     </span>
-    <span>y=-1</span>
+    <label for="func">Function:</label>
+    <input type="text" id="func" value="sin(x)">
+    <span id="shader-error"></span>
 </span>
 </body>
 </html>

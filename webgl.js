@@ -1,4 +1,3 @@
-/* global alert */
 /* exported webgl */
 
 function webgl() {
@@ -13,10 +12,17 @@ function webgl() {
         0, 1, 0.02, 0.95,
         0, 1, -0.02, 0.95
     ])
-    var graph = graphProgram(), axes = axesProgram()
-    var pos
-    var x
-    var t
+
+    var $func = document.getElementById('func');
+    var $shaderError = document.getElementById('shader-error');
+
+    var graph = graphProgram()
+    var axes = axesProgram();
+    var pos = gl.getAttribLocation(axes, 'pos')
+
+    var x, t, xsBuffer, axisBuffer
+
+    $func.addEventListener('input', onInput)
 
     bind()
 
@@ -30,48 +36,71 @@ function webgl() {
         return a
     }
 
-    function bind() {
-        gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer())
+    function onInput() {
+        gl.deleteProgram(graph)
+        graph = graphProgram()
+        if (graph) {
+            t = gl.getUniformLocation(graph, 't')
+            x = gl.getAttribLocation(graph, 'x')
+        }
+        return false
+    }
 
-        t = gl.getUniformLocation(graph, 't')
-        x = gl.getAttribLocation(graph, 'x')
+    function bind() {
+        xsBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, xsBuffer)
         gl.enableVertexAttribArray(x)
 
-        pos = gl.getAttribLocation(axes, 'pos')
+        axisBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, axisBuffer)
         gl.enableVertexAttribArray(pos)
     }
 
     function draw() {
         gl.lineWidth(1)
         gl.useProgram(axes)
+        gl.bindBuffer(gl.ARRAY_BUFFER, axisBuffer)
         gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0)
         gl.bufferData(gl.ARRAY_BUFFER, axis, gl.DYNAMIC_DRAW)
         gl.drawArrays(gl.LINES, 0, axis.length / 2)
 
-        gl.lineWidth(3)
-        gl.useProgram(graph)
-        gl.vertexAttribPointer(x, 1, gl.FLOAT, false, 0, 0)
-        gl.uniform1f(t, new Date().getTime() % 8000 / 8000)
-        gl.bufferData(gl.ARRAY_BUFFER, xs, gl.DYNAMIC_DRAW)
-        gl.drawArrays(gl.LINE_STRIP, 0, xs.length)
+        if (graph) {
+            gl.lineWidth(3)
+            gl.useProgram(graph)
+            gl.bindBuffer(gl.ARRAY_BUFFER, xsBuffer)
+            gl.vertexAttribPointer(x, 1, gl.FLOAT, false, 0, 0)
+            gl.uniform1f(t, new Date().getTime() % 8000 / 8000)
+            gl.bufferData(gl.ARRAY_BUFFER, xs, gl.DYNAMIC_DRAW)
+            gl.drawArrays(gl.LINE_STRIP, 0, xs.length)
+        }
 
         requestAnimationFrame(draw)
     }
 
     function graphProgram() {
         var r = gl.createProgram()
-
-        gl.attachShader(r, createShader(gl.VERTEX_SHADER, [
+        var shader = createShader(gl.VERTEX_SHADER, [
             'attribute float x',
             'uniform float t',
-            'void main() { gl_Position = vec4(x, x * sin(x * 4. - t * 6.28), 0, 1)',
+            'void main() { gl_Position = vec4(x, ' + $func.value + ', 0, 1)',
             '}'
-        ].join(';')))
+        ].join(';'));
 
-        gl.attachShader(r, createShader(gl.FRAGMENT_SHADER, [
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+            $shaderError.innerHTML = gl.getShaderInfoLog(shader)
+            return
+        }
+
+        $shaderError.innerHTML = ''
+        gl.attachShader(r, shader)
+
+        shader = createShader(gl.FRAGMENT_SHADER, [
             'void main() { gl_FragColor = vec4(0, 0, 0, 1)',
             '}'
-        ].join(';')))
+        ].join(';'));
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+            $shaderError.innerHTML = gl.getShaderInfoLog(shader)
+        gl.attachShader(r, shader)
 
         gl.linkProgram(r)
 
@@ -81,16 +110,22 @@ function webgl() {
     function axesProgram() {
         var r = gl.createProgram()
 
-        gl.attachShader(r, createShader(gl.VERTEX_SHADER, [
+        var shader = createShader(gl.VERTEX_SHADER, [
             'attribute vec2 pos',
             'void main() { gl_Position = vec4(pos, 0, 1)',
             '}'
-        ].join(';')))
+        ].join(';'));
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+            $shaderError.innerHTML = gl.getShaderInfoLog(shader)
+        gl.attachShader(r, shader)
 
-        gl.attachShader(r, createShader(gl.FRAGMENT_SHADER, [
+        shader = createShader(gl.FRAGMENT_SHADER, [
             'void main() { gl_FragColor = vec4(0, 0, 0.6, 1)',
             '}'
-        ].join(';')))
+        ].join(';'));
+        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
+            $shaderError.innerHTML = gl.getShaderInfoLog(shader)
+        gl.attachShader(r, shader)
 
         gl.linkProgram(r)
 
@@ -101,8 +136,6 @@ function webgl() {
         var r = gl.createShader(type)
         gl.shaderSource(r, source)
         gl.compileShader(r)
-        if (!gl.getShaderParameter(r, gl.COMPILE_STATUS))
-            alert(gl.getShaderInfoLog(r))
         return r
     }
 }
