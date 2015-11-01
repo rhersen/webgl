@@ -16,9 +16,6 @@ function webgl() {
     var funcElement = document.getElementById('func')
 
     var graph = graphProgram(funcElement.value = 'sin(x)')
-    var tLocation = gl.getUniformLocation(graph.program, 't')
-    var xLocation = gl.getAttribLocation(graph.program, 'x')
-    var xsBuffer = createBuffer(xLocation)
 
     var axes = axesProgram()
     var pLocation = gl.getAttribLocation(axes, 'p')
@@ -41,11 +38,6 @@ function webgl() {
             gl.deleteProgram(graph.program)
 
         graph = graphProgram(funcElement.value)
-
-        if (graph) {
-            tLocation = gl.getUniformLocation(graph.program, 't')
-            xLocation = gl.getAttribLocation(graph.program, 'x')
-        }
 
         return false
     }
@@ -78,15 +70,15 @@ function webgl() {
     function drawGraph() {
         gl.lineWidth(3)
         gl.useProgram(graph.program)
-        gl.bindBuffer(gl.ARRAY_BUFFER, xsBuffer)
-        gl.vertexAttribPointer(xLocation, 1, gl.FLOAT, false, 0, 0)
-        gl.uniform1f(tLocation, new Date().getTime() % 8000 / 8000)
+        gl.bindBuffer(gl.ARRAY_BUFFER, graph.buffer)
+        gl.vertexAttribPointer(graph.x, 1, gl.FLOAT, false, 0, 0)
+        gl.uniform1f(graph.t, new Date().getTime() % 8000 / 8000)
         gl.bufferData(gl.ARRAY_BUFFER, xTypedArray, gl.DYNAMIC_DRAW)
         gl.drawArrays(gl.LINE_STRIP, 0, xTypedArray.length)
     }
 
     function graphProgram(f) {
-        var r = gl.createProgram()
+        var program = gl.createProgram()
         var shader = createShader(gl.VERTEX_SHADER, [
             'attribute float x',
             'uniform float t',
@@ -100,7 +92,7 @@ function webgl() {
         }
 
         shaderErrorElement.innerHTML = ''
-        gl.attachShader(r, shader)
+        gl.attachShader(program, shader)
 
         shader = createShader(gl.FRAGMENT_SHADER, [
             'void main() { gl_FragColor = vec4(0, 0, 0, 1)',
@@ -108,11 +100,17 @@ function webgl() {
         ].join(';'))
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
             shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
-        gl.attachShader(r, shader)
+        gl.attachShader(program, shader)
 
-        gl.linkProgram(r)
+        gl.linkProgram(program)
 
-        return {program: r}
+        var xLocation = gl.getAttribLocation(program, 'x')
+        return {
+            program: program,
+            t: gl.getUniformLocation(program, 't'),
+            x: xLocation,
+            buffer: createBuffer(xLocation)
+        }
     }
 
     function axesProgram() {
