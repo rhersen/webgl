@@ -12,16 +12,17 @@ function webgl() {
         0, 1, -0.02, 0.95
     ])
 
-    var shaderErrorElement = document.getElementById('shader-error');
-    var funcElement = document.getElementById('func');
+    var shaderErrorElement = document.getElementById('shader-error')
+    var funcElement = document.getElementById('func')
 
     var graph = graphProgram(funcElement.value = 'sin(x)')
-    var axes = axesProgram();
-    var pLocation = gl.getAttribLocation(axes, 'p')
+    var tLocation = gl.getUniformLocation(graph, 't')
     var xLocation = gl.getAttribLocation(graph, 'x')
-    var tLocation = gl.getUniformLocation(graph, 't');
-    var xsBuffer = createBuffer(xLocation);
-    var axisBuffer = createBuffer(pLocation);
+    var xsBuffer = createBuffer(xLocation)
+
+    var axes = axesProgram()
+    var pLocation = gl.getAttribLocation(axes, 'p')
+    var axisBuffer = createBuffer(pLocation)
 
     funcElement.addEventListener('input', onInput)
 
@@ -46,17 +47,17 @@ function webgl() {
     }
 
     function createBuffer(vertexAttribArray) {
-        var r = gl.createBuffer();
+        var r = gl.createBuffer()
         gl.bindBuffer(gl.ARRAY_BUFFER, r)
         gl.enableVertexAttribArray(vertexAttribArray)
         return r
     }
 
     function draw() {
-        drawAxes();
+        drawAxes()
 
         if (graph)
-            drawGraph();
+            drawGraph()
 
         requestAnimationFrame(draw)
     }
@@ -87,7 +88,7 @@ function webgl() {
             'uniform float t',
             'void main() { gl_Position = vec4(x, ' + f + ', 0, 1)',
             '}'
-        ].join(';'));
+        ].join(';'))
 
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
             shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
@@ -100,7 +101,7 @@ function webgl() {
         shader = createShader(gl.FRAGMENT_SHADER, [
             'void main() { gl_FragColor = vec4(0, 0, 0, 1)',
             '}'
-        ].join(';'));
+        ].join(';'))
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
             shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
         gl.attachShader(r, shader)
@@ -117,7 +118,7 @@ function webgl() {
             'attribute vec2 p',
             'void main() { gl_Position = vec4(p, 0, 1)',
             '}'
-        ].join(';'));
+        ].join(';'))
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
             shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
         gl.attachShader(r, shader)
@@ -125,7 +126,7 @@ function webgl() {
         shader = createShader(gl.FRAGMENT_SHADER, [
             'void main() { gl_FragColor = vec4(0, 0, 0.6, 1)',
             '}'
-        ].join(';'));
+        ].join(';'))
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
             shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
         gl.attachShader(r, shader)
