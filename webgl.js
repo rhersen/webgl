@@ -17,13 +17,13 @@ function webgl() {
 
     var graph = graphProgram(funcElement.value = 'sin(x)')
     var axes = axesProgram();
-    var pos = gl.getAttribLocation(axes, 'pos')
-
-    var x, t, xsBuffer, axisBuffer
+    var pLocation = gl.getAttribLocation(axes, 'p')
+    var xLocation = gl.getAttribLocation(graph, 'x')
+    var tLocation = gl.getUniformLocation(graph, 't');
+    var xsBuffer = createBuffer(xLocation);
+    var axisBuffer = createBuffer(pLocation);
 
     funcElement.addEventListener('input', onInput)
-
-    bind()
 
     requestAnimationFrame(draw)
 
@@ -39,20 +39,17 @@ function webgl() {
         gl.deleteProgram(graph)
         graph = graphProgram(funcElement.value)
         if (graph) {
-            t = gl.getUniformLocation(graph, 't')
-            x = gl.getAttribLocation(graph, 'x')
+            tLocation = gl.getUniformLocation(graph, 't')
+            xLocation = gl.getAttribLocation(graph, 'x')
         }
         return false
     }
 
-    function bind() {
-        xsBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, xsBuffer)
-        gl.enableVertexAttribArray(x)
-
-        axisBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, axisBuffer)
-        gl.enableVertexAttribArray(pos)
+    function createBuffer(vertexAttribArray) {
+        var r = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, r)
+        gl.enableVertexAttribArray(vertexAttribArray)
+        return r
     }
 
     function draw() {
@@ -68,7 +65,7 @@ function webgl() {
         gl.lineWidth(1)
         gl.useProgram(axes)
         gl.bindBuffer(gl.ARRAY_BUFFER, axisBuffer)
-        gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0)
+        gl.vertexAttribPointer(pLocation, 2, gl.FLOAT, false, 0, 0)
         gl.bufferData(gl.ARRAY_BUFFER, axesTypedArray, gl.DYNAMIC_DRAW)
         gl.drawArrays(gl.LINES, 0, axesTypedArray.length / 2)
     }
@@ -77,8 +74,8 @@ function webgl() {
         gl.lineWidth(3)
         gl.useProgram(graph)
         gl.bindBuffer(gl.ARRAY_BUFFER, xsBuffer)
-        gl.vertexAttribPointer(x, 1, gl.FLOAT, false, 0, 0)
-        gl.uniform1f(t, new Date().getTime() % 8000 / 8000)
+        gl.vertexAttribPointer(xLocation, 1, gl.FLOAT, false, 0, 0)
+        gl.uniform1f(tLocation, new Date().getTime() % 8000 / 8000)
         gl.bufferData(gl.ARRAY_BUFFER, xTypedArray, gl.DYNAMIC_DRAW)
         gl.drawArrays(gl.LINE_STRIP, 0, xTypedArray.length)
     }
@@ -117,8 +114,8 @@ function webgl() {
         var r = gl.createProgram()
 
         var shader = createShader(gl.VERTEX_SHADER, [
-            'attribute vec2 pos',
-            'void main() { gl_Position = vec4(pos, 0, 1)',
+            'attribute vec2 p',
+            'void main() { gl_Position = vec4(p, 0, 1)',
             '}'
         ].join(';'));
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
