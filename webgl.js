@@ -16,8 +16,8 @@ function webgl() {
     var funcElement = document.getElementById('func')
 
     var graph = graphProgram(funcElement.value = 'sin(x)')
-    var tLocation = gl.getUniformLocation(graph, 't')
-    var xLocation = gl.getAttribLocation(graph, 'x')
+    var tLocation = gl.getUniformLocation(graph.program, 't')
+    var xLocation = gl.getAttribLocation(graph.program, 'x')
     var xsBuffer = createBuffer(xLocation)
 
     var axes = axesProgram()
@@ -37,12 +37,16 @@ function webgl() {
     }
 
     function onInput() {
-        gl.deleteProgram(graph)
+        if (graph)
+            gl.deleteProgram(graph.program)
+
         graph = graphProgram(funcElement.value)
+
         if (graph) {
-            tLocation = gl.getUniformLocation(graph, 't')
-            xLocation = gl.getAttribLocation(graph, 'x')
+            tLocation = gl.getUniformLocation(graph.program, 't')
+            xLocation = gl.getAttribLocation(graph.program, 'x')
         }
+
         return false
     }
 
@@ -73,7 +77,7 @@ function webgl() {
 
     function drawGraph() {
         gl.lineWidth(3)
-        gl.useProgram(graph)
+        gl.useProgram(graph.program)
         gl.bindBuffer(gl.ARRAY_BUFFER, xsBuffer)
         gl.vertexAttribPointer(xLocation, 1, gl.FLOAT, false, 0, 0)
         gl.uniform1f(tLocation, new Date().getTime() % 8000 / 8000)
@@ -108,7 +112,7 @@ function webgl() {
 
         gl.linkProgram(r)
 
-        return r
+        return {program: r}
     }
 
     function axesProgram() {
