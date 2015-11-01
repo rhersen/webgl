@@ -16,10 +16,7 @@ function webgl() {
     var funcElement = document.getElementById('func')
 
     var graph = graphProgram(funcElement.value = 'sin(x)')
-
     var axes = axesProgram()
-    var pLocation = gl.getAttribLocation(axes, 'p')
-    var axisBuffer = createBuffer(pLocation)
 
     funcElement.addEventListener('input', onInput)
 
@@ -60,9 +57,9 @@ function webgl() {
 
     function drawAxes() {
         gl.lineWidth(1)
-        gl.useProgram(axes)
-        gl.bindBuffer(gl.ARRAY_BUFFER, axisBuffer)
-        gl.vertexAttribPointer(pLocation, 2, gl.FLOAT, false, 0, 0)
+        gl.useProgram(axes.program)
+        gl.bindBuffer(gl.ARRAY_BUFFER, axes.buffer)
+        gl.vertexAttribPointer(axes.p, 2, gl.FLOAT, false, 0, 0)
         gl.bufferData(gl.ARRAY_BUFFER, axesTypedArray, gl.DYNAMIC_DRAW)
         gl.drawArrays(gl.LINES, 0, axesTypedArray.length / 2)
     }
@@ -114,7 +111,7 @@ function webgl() {
     }
 
     function axesProgram() {
-        var r = gl.createProgram()
+        var program = gl.createProgram()
 
         var shader = createShader(gl.VERTEX_SHADER, [
             'attribute vec2 p',
@@ -123,7 +120,7 @@ function webgl() {
         ].join(';'))
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
             shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
-        gl.attachShader(r, shader)
+        gl.attachShader(program, shader)
 
         shader = createShader(gl.FRAGMENT_SHADER, [
             'void main() { gl_FragColor = vec4(0, 0, 0.6, 1)',
@@ -131,11 +128,16 @@ function webgl() {
         ].join(';'))
         if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
             shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
-        gl.attachShader(r, shader)
+        gl.attachShader(program, shader)
 
-        gl.linkProgram(r)
+        gl.linkProgram(program)
+        var pLocation = gl.getAttribLocation(program, 'p')
 
-        return r
+        return {
+            program: program,
+            p: pLocation,
+            buffer: createBuffer(pLocation)
+        }
     }
 
     function createShader(type, source) {
