@@ -47,13 +47,6 @@ function webgl() {
         return false
     }
 
-    function createBuffer(vertexAttribArray) {
-        var r = gl.createBuffer()
-        gl.bindBuffer(gl.ARRAY_BUFFER, r)
-        gl.enableVertexAttribArray(vertexAttribArray)
-        return r
-    }
-
     function draw() {
         if (!animation) return
 
@@ -63,25 +56,25 @@ function webgl() {
             drawGraph()
 
         animation = requestAnimationFrame(draw)
-    }
 
-    function drawAxes() {
-        gl.lineWidth(1)
-        gl.useProgram(axes.program)
-        gl.bindBuffer(gl.ARRAY_BUFFER, axes.buffer)
-        gl.vertexAttribPointer(axes.p, 2, gl.FLOAT, false, 0, 0)
-        gl.bufferData(gl.ARRAY_BUFFER, axesTypedArray, gl.DYNAMIC_DRAW)
-        gl.drawArrays(gl.LINES, 0, axesTypedArray.length / 2)
-    }
+        function drawAxes() {
+            gl.lineWidth(1)
+            gl.useProgram(axes.program)
+            gl.bindBuffer(gl.ARRAY_BUFFER, axes.buffer)
+            gl.vertexAttribPointer(axes.p, 2, gl.FLOAT, false, 0, 0)
+            gl.bufferData(gl.ARRAY_BUFFER, axesTypedArray, gl.DYNAMIC_DRAW)
+            gl.drawArrays(gl.LINES, 0, axesTypedArray.length / 2)
+        }
 
-    function drawGraph() {
-        gl.lineWidth(3)
-        gl.useProgram(graph.program)
-        gl.bindBuffer(gl.ARRAY_BUFFER, graph.buffer)
-        gl.vertexAttribPointer(graph.x, 1, gl.FLOAT, false, 0, 0)
-        gl.uniform1f(graph.t, new Date().getTime() % 8000 / 8000)
-        gl.bufferData(gl.ARRAY_BUFFER, xTypedArray, gl.DYNAMIC_DRAW)
-        gl.drawArrays(gl.LINE_STRIP, 0, xTypedArray.length)
+        function drawGraph() {
+            gl.lineWidth(3)
+            gl.useProgram(graph.program)
+            gl.bindBuffer(gl.ARRAY_BUFFER, graph.buffer)
+            gl.vertexAttribPointer(graph.x, 1, gl.FLOAT, false, 0, 0)
+            gl.uniform1f(graph.t, new Date().getTime() % 8000 / 8000)
+            gl.bufferData(gl.ARRAY_BUFFER, xTypedArray, gl.DYNAMIC_DRAW)
+            gl.drawArrays(gl.LINE_STRIP, 0, xTypedArray.length)
+        }
     }
 
     function graphProgram(f) {
@@ -154,6 +147,13 @@ function webgl() {
         var r = gl.createShader(type)
         gl.shaderSource(r, source)
         gl.compileShader(r)
+        return r
+    }
+
+    function createBuffer(vertexAttribArray) {
+        var r = gl.createBuffer()
+        gl.bindBuffer(gl.ARRAY_BUFFER, r)
+        gl.enableVertexAttribArray(vertexAttribArray)
         return r
     }
 }
