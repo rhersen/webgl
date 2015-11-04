@@ -18,9 +18,9 @@ function webgl() {
     var graph = graphProgram(funcElement.value = 'sin(x)')
     var axes = axesProgram()
 
-    funcElement.addEventListener('input', onInput)
+    var animation = requestAnimationFrame(draw);
 
-    requestAnimationFrame(draw)
+    funcElement.addEventListener('input', onInput)
 
     function getXArray() {
         var a = []
@@ -36,6 +36,14 @@ function webgl() {
 
         graph = graphProgram(funcElement.value)
 
+        if (animation && !graph) {
+            cancelAnimationFrame(animation)
+            animation = 0
+        }
+
+        if (graph && !animation)
+            animation = requestAnimationFrame(draw)
+
         return false
     }
 
@@ -47,12 +55,14 @@ function webgl() {
     }
 
     function draw() {
+        if (!animation) return
+
         drawAxes()
 
         if (graph)
             drawGraph()
 
-        requestAnimationFrame(draw)
+        animation = requestAnimationFrame(draw)
     }
 
     function drawAxes() {
