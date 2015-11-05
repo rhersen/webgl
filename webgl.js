@@ -15,10 +15,10 @@ function webgl() {
     var shaderErrorElement = document.getElementById('shader-error')
     var funcElement = document.getElementById('func')
 
-    var graph = graphProgram(funcElement.value = 'sin(x)')
     var axes = axesProgram()
+    var graph = graphProgram(funcElement.value = 'sin(x)')
 
-    var animation = requestAnimationFrame(draw);
+    var animation = requestAnimationFrame(draw)
 
     funcElement.addEventListener('input', onInput)
 
@@ -78,76 +78,70 @@ function webgl() {
     }
 
     function graphProgram(f) {
-        var program = gl.createProgram()
-        var shader = createShader(gl.VERTEX_SHADER, [
+        var program = createProgram([
             'attribute float x',
             'uniform float t',
             'void main() { gl_Position = vec4(x, ' + f + ', 0, 1)',
             '}'
-        ].join(';'))
-
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-            shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
-            return
-        }
-
-        shaderErrorElement.innerHTML = ''
-        gl.attachShader(program, shader)
-
-        shader = createShader(gl.FRAGMENT_SHADER, [
+        ].join(';'), [
             'void main() { gl_FragColor = vec4(0, 0, 0, 1)',
             '}'
         ].join(';'))
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-            shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
-        gl.attachShader(program, shader)
 
-        gl.linkProgram(program)
+        if (program) {
+            var xLocation = gl.getAttribLocation(program, 'x')
 
-        var xLocation = gl.getAttribLocation(program, 'x')
-        return {
-            program: program,
-            t: gl.getUniformLocation(program, 't'),
-            x: xLocation,
-            buffer: createBuffer(xLocation)
+            return {
+                program: program,
+                t: gl.getUniformLocation(program, 't'),
+                x: xLocation,
+                buffer: createBuffer(xLocation)
+            }
         }
     }
 
     function axesProgram() {
-        var program = gl.createProgram()
-
-        var shader = createShader(gl.VERTEX_SHADER, [
+        var program = createProgram([
             'attribute vec2 p',
             'void main() { gl_Position = vec4(p, 0, 1)',
             '}'
-        ].join(';'))
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-            shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
-        gl.attachShader(program, shader)
-
-        shader = createShader(gl.FRAGMENT_SHADER, [
+        ].join(';'), [
             'void main() { gl_FragColor = vec4(0, 0, 0.6, 1)',
             '}'
         ].join(';'))
-        if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS))
-            shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
-        gl.attachShader(program, shader)
 
-        gl.linkProgram(program)
-        var pLocation = gl.getAttribLocation(program, 'p')
+        if (program) {
+            var pLocation = gl.getAttribLocation(program, 'p')
 
-        return {
-            program: program,
-            p: pLocation,
-            buffer: createBuffer(pLocation)
+            return {
+                program: program,
+                p: pLocation,
+                buffer: createBuffer(pLocation)
+            }
         }
     }
 
-    function createShader(type, source) {
-        var r = gl.createShader(type)
-        gl.shaderSource(r, source)
-        gl.compileShader(r)
-        return r
+    function createProgram(v, f) {
+        var program = gl.createProgram()
+
+        if (compile(gl.VERTEX_SHADER, v) && compile(gl.FRAGMENT_SHADER, f)) {
+            gl.linkProgram(program)
+            shaderErrorElement.innerHTML = ''
+            return program
+        }
+
+        function compile(type, source) {
+            var shader = gl.createShader(type)
+            gl.shaderSource(shader, source)
+            gl.compileShader(shader)
+            var compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS)
+            if (compiled)
+                gl.attachShader(program, shader)
+            else
+                shaderErrorElement.innerHTML = gl.getShaderInfoLog(shader)
+
+            return compiled
+        }
     }
 
     function createBuffer(vertexAttribArray) {
