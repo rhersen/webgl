@@ -4,11 +4,22 @@
     align-items: center;
 }
 
+.input-column {
+    display: flex;
+    flex-direction: column;
+    align-self: flex-start;
+    flex-grow: 1;
+}
+
 .flex-row {
     display: flex;
     flex-direction: row;
     align-items: center;
 
+}
+
+#func {
+    font-size: 24px;
 }
 
 .webgl-canvas {
